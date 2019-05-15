@@ -1,0 +1,16 @@
+tmp*
+*.bak
+*.diff
+target/
+.idea/
+.classpath
+.project
+.settings/
+*.iml
+.tags*
+*.pyc
+/**/thrift-java/
+*.logT
+release
+.DS_Store
+
