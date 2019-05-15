@@ -8,7 +8,7 @@ public class util {
     JSONObject response;
 /**
  *{"deviceType号": [{"propertyType号1":
-                                    [{"format": "XXX"}, {"unit": "XXX"}, {"valueRange": [0, 100, 1]}]}]}
+                                    [{"format": "XXX", "unit": "XXX", "valueRange": [0, 100, 1]}]}]}
 
  *{"deviceType号": [{"propertyType号1":
  [{"format": "XXX"}, {"unit": "XXX"}, {"valueRange": [0, 100, 1]}]}]}
@@ -21,12 +21,9 @@ public class util {
 
         JSONObject notifyJsonObject = new JSONObject();
         JSONObject propertyJsonObject = new JSONObject();
-        JSONObject jsonObject2 = new JSONObject();
         JSONArray notifyJsonArray = new JSONArray();
         JSONArray propertyJsonArray = new JSONArray();
-        jsonObject.put("",jsonObject2);
-
-
+        JSONArray valueJsonArray = new JSONArray();
 
         if(response.getBoolean("services")){
             JSONArray servicesArray = new JSONArray(response.getString("services"));
@@ -38,6 +35,8 @@ public class util {
                             JSONArray accessArray = propertiesArray.getJSONObject(i).getJSONArray("access");
                             for(int k=0;k<accessArray.length();k++){
                                 if(accessArray.getString(i).equals("notify")){
+
+
 
                                 }
                             }
