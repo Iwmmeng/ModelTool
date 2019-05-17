@@ -1,18 +1,3 @@
-TJ:
-  apiHost: "i2.api.home.mi.com"
-  userId: "5204187991"
-  pwd: "xm052415"
-  otHost: "i2.ott.io.mi.com"
-  otPort: "80"
-  virtualDeviceHost: "127.0.0.1"
-  virtualDevicePort: "8088"
-  deviceNumber: "1"
-  M1GAxtaW9A0LXNwZWMtdjIVjoAFGAh6aGltaS1tMhUUGAQ5NDg0FY4HAA: {
-    serialNumber: "9484",
-
-    model: "zhimi.airpurifier.m2",
-    pid: "2.2"
-    }
 DEBUG:
   apiHost: "api.home.mi.com"
   userId: "2208136113"
@@ -26,5 +11,4 @@ DEBUG:
       serialNumber: "9494",
       type: "urn:miot-spec-v2:device:air-purifier:0000A007:zhimi-m2:1",
       model: "zhimi.airpurifier.m2",
-      pid: "2.2",
   }

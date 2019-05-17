@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration status="warn">
+    <properties>
+        <property name="log.dir">${sys:user.home}/logs/modelTool</property>
+    </properties>
+    <appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p (%c{1.} %L) - %m%n"/>
+        </Console>
+
+        <RollingFile name="FileLog" fileName="${log.dir}/fakeId.log"
+                     filePattern="${log.dir}/fakeId.%d{yyyy-MM-dd} %i.log">
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS}-%m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="50"/>
+        </RollingFile>
+
+        <RollingFile name="DailyLog" fileName="${log.dir}/daily.log"
+                     filePattern="${log.dir}/daily.%d{yyyy-MM-dd} %i.log">
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %5p (%c{1.} %L) - %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="300 MB"/>
+            </Policies>
+        </RollingFile>
+    </appenders>
+
+    <Loggers>
+        <Root level="info">
+            <appender-ref ref="DailyLog"/>
+            <appender-ref ref="Console" />
+        </Root>
+        <Logger name="maoYanLog" level="info" additivity="false">
+            <appender-ref ref="FileLog" />
+            <appender-ref ref="Console" />
+        </Logger>
+    </Loggers>
+</configuration>
