@@ -24,38 +24,28 @@ public class BaseTest {
     static String region = System.getProperty("region");
     static String receiverUrl = "http://10.38.164.50:8089/subscribe/" + region;
     static List<String> didList = new ArrayList<>();
-//    static VirtualDevice virtualDevice = new VirtualDevice();
+    //    static VirtualDevice virtualDevice = new VirtualDevice();
     static String deviceUrl = "";
     static String serviceName = "openhome";
 
-@BeforeClass
+    @BeforeClass
     public static void beforeClass() throws Exception {
-    if (region==null) {
-        region = "DEBUG";
+        if (region == null) {
+            region = "DEBUG";
+        }
+        if (region.equals("DEBUG")) {
+            receiverUrl = "http://10.38.164.50:8089/subscribe/TJ";
+        }
+        JSONObject beforeResult = new JSONObject();
+        beforeResult.put("name", serviceName + ".beforeClass").put("result", true).put("description", "ok").
+                put("endpoint", InetAddress.getLocalHost().getHostName()).
+                put("timestamp", System.currentTimeMillis()).put("code", 0).put("requestId", "").put("httpCode", 0);
+        LoggerUtils.log(StringFormat.padding("BeforeClass Start", "=", 120));
+        Map<String, Map<String, String>> deviceList;
+        JSONObject virtualDeviceListStatus;
+        openHomeApi = new OpenHomeApi();
+        JSONObject loginResult = openHomeApi.openHomeLogin(region);
     }
-    if(region.equals("DEBUG")) {
-        receiverUrl = "http://10.38.164.50:8089/subscribe/TJ";
-    }
-    JSONObject beforeResult = new JSONObject();
-    beforeResult.put("name", serviceName + ".beforeClass").put("result", true).put("description","ok").
-            put("endpoint", InetAddress.getLocalHost().getHostName()).
-            put("timestamp", System.currentTimeMillis()).put("code", 0).put("requestId", "").put("httpCode", 0);
-    LoggerUtils.log(StringFormat.padding("BeforeClass Start", "=", 120));
-    Map<String, Map<String, String>> deviceList;
-    JSONObject virtualDeviceListStatus;
-    openHomeApi = new OpenHomeApi();
-    JSONObject loginResult = openHomeApi.openHomeLogin(region);
-}
-
-
-
-
-
-
-
-
-
-
 
 
 }
