@@ -8,27 +8,20 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.InputStreamUtils;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.hamcrest.Matchers.*;
-
 import static io.restassured.RestAssured.given;
 
 public class PropertyChangeNotifyTest extends BaseTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(PropertyChangeNotifyTest.class);
     public static List<String> supportNotifyList = new ArrayList();
     public static JSONArray failTestResult = new JSONArray();
-
+    public static List allNotifyPidList = new ArrayList();
 
     @Test
     public void test01() throws Exception {
-
-
         Map<String, Map<String, String>> deviceList;
         deviceList = InputStreamUtils.getDeviceList(region);
         Map<String, String> device = null;
@@ -48,7 +41,7 @@ public class PropertyChangeNotifyTest extends BaseTest {
 //        String type = "urn:miot-spec-v2:device:air-purifier:0000A007:zhimi-m2:1";
         Map map = new HashMap();
         map.put("type", type);
-        Response response1 = given().params(map).get(url).peek();
+        Response response1 = given().params(map).get(url);
         response1.then().statusCode(200);
         JSONObject jsonObject = new JSONObject(response1.asString());
         Assert.assertNotNull(jsonObject);
@@ -57,7 +50,6 @@ public class PropertyChangeNotifyTest extends BaseTest {
         List<String> pidNotifyList = parse.getNotifyPidList();
         Assert.assertNotNull(pidNotifyList);
         for (int k = 0; k < pidNotifyList.size(); k++) {
-//        for(String pid:pidNotifyList){
             //todo 更改第3位
 //            k =3;
             JSONObject subJsonObject = new JSONObject();
@@ -73,7 +65,7 @@ public class PropertyChangeNotifyTest extends BaseTest {
             LOGGER.info("responseObject is {}", responseObject);
             if (response.statusCode() != 200 || responseObject.getJSONArray("properties").getJSONObject(0).getInt("status") != 0) {
                 subJsonObject.put(subPid, "subscribe fail");
-                subJsonObject.put("code", responseObject.getInt("code"));
+                subJsonObject.put("code", response.statusCode());
                 subJsonObject.put("pid", responseObject.getJSONArray("properties").getJSONObject(0).getString("pid"));
                 subJsonObject.put("status", responseObject.getJSONArray("properties").getJSONObject(0).getInt("status"));
                 subJsonObject.put("description", responseObject.getJSONArray("properties").getJSONObject(0).getString("description"));
@@ -105,7 +97,7 @@ public class PropertyChangeNotifyTest extends BaseTest {
 //            response.then().statusCode(200).body("properties[0].status",equalTo(0));
             if (response.statusCode() != 200 || responseObject.getJSONArray("properties").getJSONObject(0).getInt("status") != 0) {
                 subJsonObject.put(subPid, "unSubscribe fail");
-                subJsonObject.put("code", responseObject.getInt("code"));
+                subJsonObject.put("code", response.statusCode());
                 subJsonObject.put("pid", subPid);
                 subJsonObject.put("status", responseObject.getJSONArray("properties").getJSONObject(0).getInt("status"));
                 failTestResult.put(subJsonObject);
@@ -115,12 +107,12 @@ public class PropertyChangeNotifyTest extends BaseTest {
             }
             supportNotifyList.add(subPid);
         }
-
-        System.out.println("failTestResult: " + failTestResult);
-        System.out.println("supportNotifyList:" + supportNotifyList);
-
+//todo 增加一个所有包含notify的列表
+        LOGGER.info("all notify pid size:{},list:{}",allNotifyPidList.size(),allNotifyPidList);
+        LOGGER.info("write权限notify的pid size:{},list:{}",pidNotifyList.size(),pidNotifyList);
+        LOGGER.info("write权限notify的failTestResult size:{},list:{}",failTestResult.length(),failTestResult);
+        LOGGER.info("write权限notify的passNotifyList size:{},list:{}",supportNotifyList.size(),supportNotifyList);
     }
-
 
     @Test
     public void test() {

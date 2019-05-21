@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.xioami.modeltool.BaseTest.receiverUrl;
+import static com.xioami.modeltool.PropertyChangeNotifyTest.allNotifyPidList;
 
 
 public class ResultParse {
@@ -50,13 +51,16 @@ public class ResultParse {
                             JSONArray accessArray = propertiesArray.getJSONObject(j).getJSONArray("access");
                             for (int k = 0; k < accessArray.length(); k++) {
                                 //todo 需要notify&write权限 加进去，要么就通过回调来触发
-                                if (accessArray.getString(k).equals("notify") && accessArray.getString(k - 1).equals("write")) {
-                                    model = generateModel(response.getString("type"));
-                                    //todo 把pid给设置进去
+                                if (accessArray.getString(k).equals("notify")) {
                                     pid = (i + 1) + "." + (j + 1);
-                                    propertiesArray.getJSONObject(j).put("pid", pid);
-                                    //把满足条件的propertyJsonArray摘出来放进propertyJsonObject
-                                    propertyJsonArray.put(propertiesArray.getJSONObject(j));
+                                    allNotifyPidList.add(pid);
+                                    //todo 把pid给设置进去
+                                    if (accessArray.getString(k - 1).equals("write")) {
+                                        propertiesArray.getJSONObject(j).put("pid", pid);
+                                        //把满足条件的propertyJsonArray摘出来放进propertyJsonObject
+                                        propertyJsonArray.put(propertiesArray.getJSONObject(j));
+                                        break;
+                                    }
                                     break;
                                 }
                             }
@@ -73,7 +77,7 @@ public class ResultParse {
         //把notifyJsonArray放到notifyJsonObject
         notifyJsonObject.put("services", notifyJsonArray);
         notifyJsonObject.put("type", response.getString("type"));
-        notifyJsonObject.put("model", model);
+//        notifyJsonObject.put("model", model);
         LOGGER.info("===========get the NotifyProperty JSONObject success========");
         LOGGER.info("notifyJsonObject is :{}", notifyJsonObject);
         return notifyJsonObject;
@@ -117,6 +121,46 @@ public class ResultParse {
         }
         return null;
     }
+    public boolean changePropertyValue(JSONObject subJsonObjectStart,JSONObject subJsonObjectEnd,String pid,Object startValue,Object endValue) throws Exception {
+        Boolean isSetOk= true;
+        Boolean startRequest = setPropertyRequest(pid,startValue,subJsonObjectStart);
+        if(!startRequest){
+            isSetOk=false;
+        }
+        Sleep.sleep(1500);
+        Boolean endRequest = setPropertyRequest(pid,endValue,subJsonObjectEnd);
+        if(!endRequest){
+            isSetOk=false;
+        }
+        notifyValue = String.valueOf(endValue);
+        return isSetOk;
+    }
+
+    public Boolean setPropertyRequest(String pid,Object value,JSONObject subJsonObject) throws Exception {
+        Boolean isOK= true;
+        JSONArray setProperties = new JSONArray();
+        setProperties.put(new JSONObject().put("pid", pid).put("value", value));
+        Response response1 = openHomeApi.setProperties(setProperties);
+        JSONObject responseObject1 = new JSONObject(response1.asString());
+        if (response1.statusCode() != 200 || responseObject1.getJSONArray("properties").getJSONObject(0).getInt("status") != 0) {
+            isOK = false;
+            subJsonObject.put(pid, "format is bool,setProperty fail");
+            subJsonObject.put("code", response1.statusCode());
+            subJsonObject.put("pid", responseObject1.getJSONArray("properties").getJSONObject(0).getString("pid"));
+            subJsonObject.put("status", responseObject1.getJSONArray("properties").getJSONObject(0).getInt("status"));
+            subJsonObject.put("description", responseObject1.getJSONArray("properties").getJSONObject(0).getString("description"));
+            PropertyChangeNotifyTest.failTestResult.put(subJsonObject);
+        } else {
+            LOGGER.info(" setProperties is success  ");
+        }
+        return isOK;
+    }
+
+
+
+
+
+
 
     //对最小单元的pid所在的JSONObject进行遍历后set值
     public boolean setProperties(JSONObject notifyPidJsonObject, String pid) throws Exception {
@@ -127,79 +171,59 @@ public class ResultParse {
             JSONObject subJsonObjectEnd = new JSONObject();
             if (notifyPidJsonObject.getString("format").contains("bool")) {
                 LOGGER.info(">>>>>>>>>>>>>>>>>>>>format is bool {}" + notifyPidJsonObject.getString("format") + "<<<<<<<<<<<<<<<<<<<");
-                JSONArray setPropertiesStart = new JSONArray();
-                JSONArray setPropertiesEnd = new JSONArray();
-                setPropertiesStart.put(new JSONObject().put("pid", pid).put("value", true));
-                Response response1 = openHomeApi.setProperties(setPropertiesStart);
-                JSONObject responseObject1 = new JSONObject(response1.asString());
-                if (response1.statusCode() != 200 || responseObject1.getJSONArray("properties").getJSONObject(0).getInt("status") != 0) {
+                Boolean setResult = changePropertyValue(subJsonObjectStart,subJsonObjectEnd,pid,true,false);
+                if(!setResult){
                     flag = false;
-                    subJsonObjectStart.put(pid, "format is bool,change the start fail");
-                    subJsonObjectStart.put("code", response1.statusCode());
-                    subJsonObjectStart.put("pid", responseObject1.getJSONArray("properties").getJSONObject(0).getString("pid"));
-                    subJsonObjectStart.put("status", responseObject1.getJSONArray("properties").getJSONObject(0).getInt("status"));
-                    subJsonObjectStart.put("description", responseObject1.getJSONArray("properties").getJSONObject(0).getString("description"));
-                    PropertyChangeNotifyTest.failTestResult.put(subJsonObjectStart);
-                } else {
-                    LOGGER.info("========= format is bool,setPropertiesStart is success  =======");
                 }
-                Sleep.sleep(1500);
-                setPropertiesEnd.put(new JSONObject().put("pid", pid).put("value", false));
-                Response response2 = openHomeApi.setProperties(setPropertiesEnd);
-                JSONObject responseObject2 = new JSONObject(response2.asString());
-                if (response2.statusCode() != 200 || responseObject2.getJSONArray("properties").getJSONObject(0).getInt("status") != 0) {
-                    flag = false;
-                    subJsonObjectEnd.put(pid, "format is bool,change the end fail");
-                    subJsonObjectEnd.put("code", response2.statusCode());
-                    subJsonObjectEnd.put("pid", responseObject2.getJSONArray("properties").getJSONObject(0).getString("pid"));
-                    subJsonObjectEnd.put("status", responseObject2.getJSONArray("properties").getJSONObject(0).getInt("status"));
-                    subJsonObjectEnd.put("description", responseObject2.getJSONArray("properties").getJSONObject(0).getString("description"));
-                    PropertyChangeNotifyTest.failTestResult.put(subJsonObjectEnd);
-                } else {
-                    LOGGER.info("========= format is bool,setPropertiesEnd is success  =======");
-                }
-                notifyValue = String.valueOf(false);
             } else if (notifyPidJsonObject.getString("format").contains("uint") || notifyPidJsonObject.getString("format").contains("int")) {
                 if (!notifyPidJsonObject.isNull("value-range")) {
                     LOGGER.info(">>>>>>>>>>>>>>>>>>>>,format is 整型，has field value-range {}" + notifyPidJsonObject.getString("format") + "<<<<<<<<<<<<<<<<<<<");
                     JSONArray valueRange = notifyPidJsonObject.getJSONArray("value-range");
-                    JSONArray setPropertiesStart = new JSONArray();
-                    JSONArray setPropertiesEnd = new JSONArray();
                     Integer valueIntStart = valueRange.getInt(0);
                     Integer valueIntEnd = valueRange.getInt(1);
-                    notifyValue = String.valueOf(valueIntEnd);
-                    setPropertiesStart.put(new JSONObject().put("pid", pid).put("value", valueIntStart));
-                    setPropertiesEnd.put(new JSONObject().put("pid", pid).put("value", valueIntEnd));
-//                    openHomeApi.setProperties(setPropertiesStart).then().statusCode(200).body("properties[0].status",equalTo(0));
-                    Response response2 = openHomeApi.setProperties(setPropertiesStart);
-                    JSONObject responseObject2 = new JSONObject(response2.asString());
-                    if (response2.statusCode() != 200 || responseObject2.getJSONArray("properties").getJSONObject(0).getInt("status") != 0) {
+
+
+                    Boolean setResult = changePropertyValue(subJsonObjectStart,subJsonObjectEnd,pid,valueIntStart,valueIntEnd);
+                    if(!setResult){
                         flag = false;
-                        subJsonObjectStart.put(pid, "format is 整型，has field value-range,change the valueIntStart fail");
-                        subJsonObjectStart.put("code", response2.statusCode());
-                        subJsonObjectStart.put("pid", responseObject2.getJSONArray("properties").getJSONObject(0).getString("pid"));
-                        subJsonObjectStart.put("status", responseObject2.getJSONArray("properties").getJSONObject(0).getInt("status"));
-                        subJsonObjectStart.put("description", responseObject2.getJSONArray("properties").getJSONObject(0).getString("description"));
-                        PropertyChangeNotifyTest.failTestResult.put(subJsonObjectStart);
-                    } else {
-                        LOGGER.info("========= format is 整型,has field value-range,set valueIntStart is success  =======");
                     }
-                    Sleep.sleep(1500);
-//                    openHomeApi.setProperties(setPropertiesEnd).then().statusCode(200).body("properties[0].status",equalTo(0));
-                    Response response3 = openHomeApi.setProperties(setPropertiesEnd);
-                    JSONObject responseObject3 = new JSONObject(response3.asString());
-                    if (response3.statusCode() != 200 || responseObject3.getJSONArray("properties").getJSONObject(0).getInt("status") != 0) {
-                        flag = false;
-                        subJsonObjectEnd.put(pid, "format is 整型，has field value-range,change the valueIntEnd fail");
-                        subJsonObjectEnd.put("code", response3.statusCode());
-                        subJsonObjectEnd.put("pid", responseObject3.getJSONArray("properties").getJSONObject(0).getString("pid"));
-                        subJsonObjectEnd.put("status", responseObject3.getJSONArray("properties").getJSONObject(0).getInt("status"));
-                        subJsonObjectEnd.put("description", responseObject3.getJSONArray("properties").getJSONObject(0).getString("description"));
-                        PropertyChangeNotifyTest.failTestResult.put(subJsonObjectEnd);
-                    } else {
-                        LOGGER.info("========= format is 整型，has field value-range,set valueIntEnd is success  =======");
-                    }
-                    notifyValue = String.valueOf(valueIntEnd);
+//
+//                    JSONArray setPropertiesStart = new JSONArray();
+//                    JSONArray setPropertiesEnd = new JSONArray();
+//
+//                    notifyValue = String.valueOf(valueIntEnd);
+//                    setPropertiesStart.put(new JSONObject().put("pid", pid).put("value", valueIntStart));
+//                    setPropertiesEnd.put(new JSONObject().put("pid", pid).put("value", valueIntEnd));
+////                    openHomeApi.setProperties(setPropertiesStart).then().statusCode(200).body("properties[0].status",equalTo(0));
+//                    Response response2 = openHomeApi.setProperties(setPropertiesStart);
+//                    JSONObject responseObject2 = new JSONObject(response2.asString());
+//                    if (response2.statusCode() != 200 || responseObject2.getJSONArray("properties").getJSONObject(0).getInt("status") != 0) {
+//                        flag = false;
+//                        subJsonObjectStart.put(pid, "format is 整型，has field value-range,change the valueIntStart fail");
+//                        subJsonObjectStart.put("code", response2.statusCode());
+//                        subJsonObjectStart.put("pid", responseObject2.getJSONArray("properties").getJSONObject(0).getString("pid"));
+//                        subJsonObjectStart.put("status", responseObject2.getJSONArray("properties").getJSONObject(0).getInt("status"));
+//                        subJsonObjectStart.put("description", responseObject2.getJSONArray("properties").getJSONObject(0).getString("description"));
+//                        PropertyChangeNotifyTest.failTestResult.put(subJsonObjectStart);
+//                    } else {
+//                        LOGGER.info("========= format is 整型,has field value-range,set valueIntStart is success  =======");
+//                    }
+//                    Sleep.sleep(1500);
+////                    openHomeApi.setProperties(setPropertiesEnd).then().statusCode(200).body("properties[0].status",equalTo(0));
+//                    Response response3 = openHomeApi.setProperties(setPropertiesEnd);
+//                    JSONObject responseObject3 = new JSONObject(response3.asString());
+//                    if (response3.statusCode() != 200 || responseObject3.getJSONArray("properties").getJSONObject(0).getInt("status") != 0) {
+//                        flag = false;
+//                        subJsonObjectEnd.put(pid, "format is 整型，has field value-range,change the valueIntEnd fail");
+//                        subJsonObjectEnd.put("code", response3.statusCode());
+//                        subJsonObjectEnd.put("pid", responseObject3.getJSONArray("properties").getJSONObject(0).getString("pid"));
+//                        subJsonObjectEnd.put("status", responseObject3.getJSONArray("properties").getJSONObject(0).getInt("status"));
+//                        subJsonObjectEnd.put("description", responseObject3.getJSONArray("properties").getJSONObject(0).getString("description"));
+//                        PropertyChangeNotifyTest.failTestResult.put(subJsonObjectEnd);
+//                    } else {
+//                        LOGGER.info("========= format is 整型，has field value-range,set valueIntEnd is success  =======");
+//                    }
+//                    notifyValue = String.valueOf(valueIntEnd);
                 }
                 if (!notifyPidJsonObject.isNull("value-list")) {
                     LOGGER.info(">>>>>>>>>>>>>>>>>>>>,format is 整型，has field value-list {}" + notifyPidJsonObject.getString("format") + "<<<<<<<<<<<<<<<<<<<");
@@ -364,6 +388,7 @@ public class ResultParse {
         return flag;
     }
 
+
     public JSONObject getNotify() throws Exception {
 
         Response response = HttpUtil.request(receiverUrl, "GET");
@@ -387,10 +412,6 @@ public class ResultParse {
             LOGGER.info("还有{}次机会获取回调值", retry);
         }
         return isOK;
-    }
-
-    public void subscribe() {
-
     }
 
 
@@ -429,10 +450,7 @@ public class ResultParse {
         JSONObject jsonObject = new JSONObject(str);
         JSONArray jsonArray = jsonObject.getJSONArray("value-range");
         System.out.println(jsonArray);
-
     }
-
-
 }
 
 
