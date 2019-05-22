@@ -1,24 +1,33 @@
 package com.xioami.modeltool;
 
+import com.xiaomi.modeltool.ApiConfig;
 import io.restassured.response.Response;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.InputStreamUtils;
+import util.ResultParse;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import static io.restassured.RestAssured.given;
+import static util.ResultParse.allNotifyPidList;
+import static util.ResultParse.failTestResult;
 
 public class PropertyChangeNotifyTest extends BaseTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(PropertyChangeNotifyTest.class);
     public static List<String> supportNotifyList = new ArrayList();
-    public static JSONArray failTestResult = new JSONArray();
-    public static List allNotifyPidList = new ArrayList();
+@Before
+public void before(){
+
+
+}
 
     @Test
     public void test01() throws Exception {
@@ -113,17 +122,5 @@ public class PropertyChangeNotifyTest extends BaseTest {
         LOGGER.info("write权限notify的failTestResult size:{},list:{}",failTestResult.length(),failTestResult);
         LOGGER.info("write权限notify的passNotifyList size:{},list:{}",supportNotifyList.size(),supportNotifyList);
     }
-
-    @Test
-    public void test() {
-        for (int i = 0; i < 9; i++) {
-            if (i == 2) {
-                System.out.println("i" + i);
-                continue;
-            }
-
-        }
-    }
-
 
 }

@@ -1,5 +1,6 @@
-package com.xioami.modeltool;
+package util;
 
+import com.xiaomi.modeltool.ApiConfig;
 import com.xiaomi.modeltool.OpenHomeApi;
 import io.restassured.response.Response;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -9,20 +10,16 @@ import org.json.JSONObject;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.HttpUtil;
-import util.RandomUtil;
-import util.Sleep;
 
-import javax.sound.sampled.Line;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.xioami.modeltool.BaseTest.receiverUrl;
-import static com.xioami.modeltool.PropertyChangeNotifyTest.allNotifyPidList;
 
 
 public class ResultParse {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResultParse.class);
+    public static JSONArray failTestResult = new JSONArray();
+    public static List allNotifyPidList = new ArrayList();
     /**
      * {"services": [{"properties":
      * [{"pid":"2.1","format": "XXX", "unit": "XXX", "valueRange": [0, 100, 1]}]}],
@@ -156,17 +153,12 @@ public class ResultParse {
             subJsonObject.put("pid", responseObject1.getJSONArray("properties").getJSONObject(0).getString("pid"));
             subJsonObject.put("status", responseObject1.getJSONArray("properties").getJSONObject(0).getInt("status"));
             subJsonObject.put("description", responseObject1.getJSONArray("properties").getJSONObject(0).getString("description"));
-            PropertyChangeNotifyTest.failTestResult.put(subJsonObject);
+            failTestResult.put(subJsonObject);
         } else {
             LOGGER.info(" setProperties is success  ");
         }
         return isOK;
     }
-
-
-
-
-
 
 
     //对最小单元的pid所在的JSONObject进行遍历后set值
@@ -181,6 +173,8 @@ public class ResultParse {
                 Boolean setResult = changePropertyValue(subJsonObjectStart,subJsonObjectEnd,pid,true,false);
                 if(!setResult){
                     flag = false;
+                }else {
+//                    LOGGER.info("bool format not have value-range or value-list");
                 }
             } else if (notifyPidJsonObject.getString("format").contains("uint") || notifyPidJsonObject.getString("format").contains("int")) {
                 if (!notifyPidJsonObject.isNull("value-range")) {
@@ -270,7 +264,7 @@ public class ResultParse {
 
     public JSONObject getNotify() throws Exception {
 
-        Response response = HttpUtil.request(receiverUrl, "GET");
+        Response response = HttpUtil.request(ApiConfig.receiverUrl, "GET");
         response.then().statusCode(200);
         JSONObject responseJSONObject = new JSONObject(response.getBody().asString());
         return responseJSONObject;
@@ -302,7 +296,6 @@ public class ResultParse {
         } else return null;
     }
 
-
     @Test
     public void test01() throws Exception {
 //        String response = given().
@@ -317,7 +310,7 @@ public class ResultParse {
 //        LOGGER.info("=====");
 //        String min =  RandomStringUtils.random(7,"abc");
 //        System.out.println(min);
-        Response response = HttpUtil.request(receiverUrl, "GET");
+        Response response = HttpUtil.request(ApiConfig.receiverUrl, "GET");
         response.prettyPeek();
 
 

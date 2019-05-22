@@ -1,7 +1,9 @@
 package com.xioami.modeltool;
 
+import com.xiaomi.modeltool.ApiConfig;
 import com.xiaomi.modeltool.OpenHomeApi;
 import io.restassured.response.Response;
+import org.codehaus.groovy.runtime.powerassert.SourceText;
 import org.json.JSONObject;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -27,6 +29,7 @@ public class BaseTest {
     //    static VirtualDevice virtualDevice = new VirtualDevice();
     static String deviceUrl = "";
     static String serviceName = "openhome";
+    static int tmp =20;
 
     @BeforeClass
     public static void beforeClass() throws Exception {
@@ -45,7 +48,9 @@ public class BaseTest {
         JSONObject virtualDeviceListStatus;
         openHomeApi = new OpenHomeApi();
         JSONObject loginResult = openHomeApi.openHomeLogin(region);
+
     }
+
 
 
 }

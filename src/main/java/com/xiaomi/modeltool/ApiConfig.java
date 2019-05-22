@@ -17,6 +17,11 @@ public class ApiConfig { public static String oauthTokenUrl = "https://account.x
     public static String appId = "2882303761517904749";
     public static String specNs = "miot-spec-v2";
     public static String smsUrl = "http://10.108.163.63/sender/sms";
+
+    //todo 在BaseTest里面会被重新改写给与赋值
+    public static String receiverUrl = "http://10.38.164.50:8089/subscribe/TJ";
+
     public static int VIRTUAL_DEVICE_ERROR = -901; //虚拟设备异常
     public static int NOTIFY_SERVICE_ERROR = -902; //回调地址异常
+
 }
